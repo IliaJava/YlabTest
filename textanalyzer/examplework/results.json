@@ -1,0 +1,39 @@
+{
+  "analysisInfo" : {
+    "directory" : ".",
+    "minWordLength" : 5,
+    "topCount" : 10
+  },
+  "words" : [ {
+    "word" : "голос",
+    "count" : 2
+  }, {
+    "word" : "нежный",
+    "count" : 2
+  }, {
+    "word" : "черты",
+    "count" : 2
+  }, {
+    "word" : "авроры",
+    "count" : 1
+  }, {
+    "word" : "безнадежной",
+    "count" : 1
+  }, {
+    "word" : "бледное",
+    "count" : 1
+  }, {
+    "word" : "вечор",
+    "count" : 1
+  }, {
+    "word" : "взоры",
+    "count" : 1
+  }, {
+    "word" : "виденье",
+    "count" : 1
+  }, {
+    "word" : "вьюга",
+    "count" : 1
+  } ],
+  "errors" : [ ]
+}
