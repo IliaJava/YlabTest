@@ -20,8 +20,10 @@ public interface TextAnalysisService {
      * @param stopWordsFile путь к файлу со стоп-словами (опционально)
      * @return результат анализа
      */
+    // В многопоточном варианте threads можно игнорировать (в single) или использовать (в multi)
     AnalysisResult analyze(Path directory,
                            int minWordLength,
                            int topN,
-                           Optional<Path> stopWordsFile);
+                           Optional<Path> stopWordsFile,
+                           int threads);
 }

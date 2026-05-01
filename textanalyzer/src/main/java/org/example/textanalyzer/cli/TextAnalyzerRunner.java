@@ -2,11 +2,14 @@ package org.example.textanalyzer.cli;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.textanalyzer.model.AnalysisResult;
+import org.example.textanalyzer.model.ErrorInfo;
+import org.example.textanalyzer.model.WordCount;
 import org.example.textanalyzer.service.TextAnalysisService;
 import org.example.textanalyzer.util.ArgumentParser;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -23,13 +26,18 @@ public class TextAnalyzerRunner implements CommandLineRunner {
 
     private static final Logger log = (Logger) LoggerFactory.getLogger(TextAnalyzerRunner.class);
 
-    private final TextAnalysisService textAnalysisService;
-    private final ObjectMapper objectMapper;
+    private final TextAnalysisService singleService;
+    private final TextAnalysisService parallelService;
+    private final ObjectMapper mapper;
 
-    public TextAnalyzerRunner(TextAnalysisService textAnalysisService,
-                              ObjectMapper objectMapper) {
-        this.textAnalysisService = textAnalysisService;
-        this.objectMapper = objectMapper;
+    public TextAnalyzerRunner(
+            @Qualifier("single") TextAnalysisService singleService,
+            @Qualifier("parallel") TextAnalysisService parallelService,
+            ObjectMapper mapper) {
+
+        this.singleService = singleService;
+        this.parallelService = parallelService;
+        this.mapper = mapper;
     }
 
     @Override
@@ -55,20 +63,27 @@ public class TextAnalyzerRunner implements CommandLineRunner {
                 parsed.getStopwordsPath().orElse(null),
                 parsed.getOutputPath().orElse(null));
 
+        String mode = parsed.getMode();
+        int threads = parsed.getThreads().orElse(2);
+
+        TextAnalysisService service =
+                mode.equalsIgnoreCase("multi") ? parallelService : singleService;
+
         // Запускаем анализ
         //Вызываем на бине которой реализует интерфейс TextAnalysisService
-        AnalysisResult result = textAnalysisService.analyze(
+        AnalysisResult result = service.analyze(
                 Path.of(parsed.getDir()),
                 parsed.getMinLength(),
                 parsed.getTop(),
-                parsed.getStopwordsPath().map(Path::of)
+                parsed.getStopwordsPath().map(Path::of),
+                threads
         );
 
         // Если указан output — пишем JSON в файл, иначе выводим в консоль
         Optional<String> outputPathOpt = parsed.getOutputPath();
         if (outputPathOpt.isPresent()) {
             File outFile = Path.of(outputPathOpt.get()).toFile();
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(outFile, result);
+            mapper.writerWithDefaultPrettyPrinter().writeValue(outFile, result);
             log.info("Результат записан в файл: {}", outFile.getAbsolutePath());
         } else {
             printToConsole(result);
@@ -80,18 +95,22 @@ public class TextAnalyzerRunner implements CommandLineRunner {
      * 1. word — count
      */
     private void printToConsole(AnalysisResult result) {
-        var words = result.getWords();
-        for (int i = 0; i < words.size(); i++) {
-            var wc = words.get(i);
-            System.out.printf("%d. %s - %d%n", i + 1, wc.getWord(), wc.getCount());
+        var info = result.getAnalysisInfo();
+
+        System.out.printf("Mode: %s (%d workers)%n", info.getMode(), info.getThreads());
+        System.out.printf("Processed %d files in %d ms%n",
+                info.getProcessedFiles(), info.getExecutionTimeMs());
+
+        int i = 1;
+        for (WordCount wc : result.getWords()) {
+            System.out.printf("%d. %s — %d%n", i++, wc.getWord(), wc.getCount());
         }
 
         if (!result.getErrors().isEmpty()) {
-            System.out.println();
-            System.out.println("Ошибки при обработке файлов:");
-            result.getErrors().forEach(e ->
-                    System.out.printf("file=%s, message=%s%n", e.getFile(), e.getMessage())
-            );
+            System.out.println("\nErrors:");
+            for (ErrorInfo e : result.getErrors()) {
+                System.out.printf(" - %s: %s%n", e.getFile(), e.getMessage());
+            }
         }
     }
 }

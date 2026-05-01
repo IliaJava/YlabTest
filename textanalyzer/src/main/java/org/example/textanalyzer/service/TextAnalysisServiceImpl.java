@@ -7,6 +7,7 @@ import org.example.textanalyzer.model.WordCount;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -29,12 +31,14 @@ import java.util.stream.Collectors;
  *  - подсчёт частоты
  */
 @Service
+@Qualifier("single") // чтобы отличать от многопоточной реализации
 public class TextAnalysisServiceImpl implements TextAnalysisService {
+
 
     private static final Logger log = LoggerFactory.getLogger(TextAnalysisServiceImpl.class);
 
     // Регулярное выражение для слов: последовательности букв и цифр
-    private static final Pattern WORD_PATTERN = Pattern.compile("[\\p{L}\\p{N}]+");
+    public static final Pattern WORD_PATTERN = Pattern.compile("[\\p{L}\\p{N}]+");
     //
     private final StopWordsProvider stopWordsProvider;
 
@@ -46,7 +50,9 @@ public class TextAnalysisServiceImpl implements TextAnalysisService {
     public AnalysisResult analyze(Path directory,
                                   int minWordLength,
                                   int topN,
-                                  Optional<Path> stopWordsFile) {
+                                  Optional<Path> stopWordsFile,
+                                  int threadsIgnored) {
+        long start = System.currentTimeMillis();
         //Для ошибок приработе с файлами
         List<ErrorInfo> errors = new ArrayList<>();
         //Частота вхождения слова
@@ -64,21 +70,24 @@ public class TextAnalysisServiceImpl implements TextAnalysisService {
             log.error(msg);
             errors.add(new ErrorInfo(directory.toString(), msg));
             // Возвращаем пустой результат, но с ошибкой
-            return new AnalysisResult(
-                    new AnalysisInfo(directory.toString(), minWordLength, topN),
-                    List.of(),
-                    errors
+            AnalysisInfo info = new AnalysisInfo(
+                    directory.toString(),
+                    minWordLength,
+                    topN,
+                    "single",
+                    1,
+                   0,
+                    System.currentTimeMillis() - start
             );
+            return new AnalysisResult(info, List.of(), errors);
         }
-
-        try {
-            // Обходим только файлы с расширением .txt
-            //возвращает ленивый Stream<Path>,
-            // содержащий список файлов и подкаталогов, находящихся внутри указанной директории.
-            try (var paths = Files.list(directory)) {
-                paths.filter(p -> Files.isRegularFile(p) && p.toString().endsWith(".txt"))
-                        .forEach(path -> processFile(path, minWordLength, stopWords, frequencyMap, errors));
-            }
+        AtomicInteger processedFiles = new AtomicInteger(0);
+        try (var paths = Files.list(directory)) {
+            paths.filter(p -> Files.isRegularFile(p) && p.toString().endsWith(".txt"))
+                    .forEach(path -> {
+                        processFile(path, minWordLength, stopWords, frequencyMap, errors);
+                        processedFiles.incrementAndGet();
+                    });
         } catch (IOException e) {
             String msg = "Failed to list files in directory: " + e.getMessage();
             log.error(msg, e);
@@ -93,7 +102,18 @@ public class TextAnalysisServiceImpl implements TextAnalysisService {
                 .map(e -> new WordCount(e.getKey(), e.getValue()))
                 .collect(Collectors.toList());
 
-        AnalysisInfo info = new AnalysisInfo(directory.toString(), minWordLength, topN);
+        long time = System.currentTimeMillis() - start;
+
+        AnalysisInfo info = new AnalysisInfo(
+                directory.toString(),
+                minWordLength,
+                topN,
+                "single",
+                1,
+                processedFiles.get(),
+                time
+        );
+
         return new AnalysisResult(info, topWords, errors);
     }
 

@@ -48,6 +48,14 @@ public class ArgumentParser {
         public Optional<String> getStopwordsPath() {
             return Optional.ofNullable(values.get("stopwords"));
         }
+        public Optional<Integer> getThreads() {
+            return Optional.ofNullable(values.get("threads"))
+                    .map(Integer::parseInt);
+        }
+
+        public String getMode() {
+            return values.getOrDefault("mode", "single");
+        }
     }
 
     public static ParsedArgs parse(String[] args) {
@@ -77,13 +85,6 @@ public class ArgumentParser {
     }
 
     public static void printHelp() {
-        System.out.println("Использование:");
-        System.out.println("  java -jar text-analyzer.jar \\");
-        System.out.println("    --dir <path> \\");
-        System.out.println("    --min-length <number> \\");
-        System.out.println("    --top <number> \\");
-        System.out.println("    [--stopwords <path>] \\");
-        System.out.println("    [--output <path>] \\");
         System.out.println();
         System.out.println("Параметры:");
         System.out.println("  --dir        Путь к папке с .txt файлами (обязательный)");
@@ -91,6 +92,8 @@ public class ArgumentParser {
         System.out.println("  --top        Количество наиболее частых слов (обязательный)");
         System.out.println("  --stopwords  Путь к файлу со стоп-словами (опционально)");
         System.out.println("  --output     Путь к JSON-файлу для вывода результата (опционально)");
+        System.out.println("  --mode single|multi   режим работы (по умолчанию single)");
+        System.out.println("  --threads <N>         количество потоков (для multi, по умолчанию 2)");
         System.out.println("  --help       Показать эту справку");
     }
 }
