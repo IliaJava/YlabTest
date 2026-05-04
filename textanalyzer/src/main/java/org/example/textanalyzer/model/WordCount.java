@@ -2,6 +2,7 @@ package org.example.textanalyzer.model;
 
 /**
  * Пара "слово - количество".
+ *  Слово и его частота.
  */
 public class WordCount {
     private String word;

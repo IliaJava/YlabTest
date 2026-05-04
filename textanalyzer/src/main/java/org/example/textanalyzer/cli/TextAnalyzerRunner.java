@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
@@ -22,6 +23,7 @@ import java.util.Optional;
  * и обрабатывает аргументы командной строки.
  */
 @Component
+@Profile("cli")
 public class TextAnalyzerRunner implements CommandLineRunner {
 
     private static final Logger log = (Logger) LoggerFactory.getLogger(TextAnalyzerRunner.class);
@@ -42,6 +44,10 @@ public class TextAnalyzerRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        if (args.length == 0) {
+            log.info("No CLI args — skipping TextAnalyzerRunner");
+            return;
+        }
         // Парсим аргументы
         var parsed = ArgumentParser.parse(args);
 

@@ -17,15 +17,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-//Загружает стоп‑слова.
-//Создаёт пул потоков.
-//На каждый файл создаёт задачу FileProcessingTask.
-//Запускает все задачи параллельно.
-//Собирает результаты из Future.
-//Объединяет локальные карты в глобальную.
-//Сортирует слова.
-//Формирует итоговый объект AnalysisResult.
-//Возвращает его в Runner.
+/**Загружает стоп‑слова.
+Создаёт пул потоков.
+На каждый файл создаёт задачу FileProcessingTask.
+Запускает все задачи параллельно.
+Собирает результаты из Future.
+Объединяет локальные карты в глобальную.
+Сортирует слова.
+Формирует итоговый объект AnalysisResult.
+Возвращает его в Runner.*/
 @Service
 @Qualifier("parallel")
 public class ParallelTextAnalysisService implements TextAnalysisService {

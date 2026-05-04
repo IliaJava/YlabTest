@@ -14,6 +14,8 @@ public interface TextAnalysisService {
     /**
      * Анализирует все .txt файлы в указанной директории.
      *
+     *Общий интерфейс для single/multi реализаций анализа.
+     *
      * @param directory     путь к директории
      * @param minWordLength минимальная длина слова
      * @param topN          количество наиболее частых слов
