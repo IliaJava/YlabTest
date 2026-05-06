@@ -54,7 +54,8 @@ class AnalysisControllerIT {
                 .postForEntity("http://localhost:" + port + "/api/analyze", entity, String.class);
 
         assertThat(startResp.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
-        assertThat(startResp.getBody()).contains("\"status\" : \"PENDING\"");
+        assertThat(startResp.getBody())
+                .matches("(?s).*\"status\"\\s*:\\s*\"PENDING\".*");
 
         // Можно было бы распарсить id из JSON, но для простоты проверим, что /results вообще работает
         ResponseEntity<String> listResp = restTemplate
@@ -64,10 +65,10 @@ class AnalysisControllerIT {
                         String.class);
 
         assertThat(listResp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        // String body = listResp.getBody();
+         String body = listResp.getBody();
 
         assertThat(listResp.getBody()
                 .matches("(?s).*\"status\"\\s*:\\s*\"(PENDING|COMPLETED)\".*")
-        ).isFalse();
+        ).isTrue();
     }
 }

@@ -3,6 +3,7 @@ package org.example.textanalyzer.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Ошибка, возникшая при обработке файла в рамках анализа.
@@ -10,15 +11,16 @@ import lombok.Data;
 @Entity
 @Table(name = "analysis_errors")
 @Data
+@ToString(exclude = "analysis")
 public class ErrorEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    public Long id;
 
-    private String file;
-    private String message;
+    public String file;
+    public String message;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private AnalysisEntity analysis;
+    public AnalysisEntity analysis;
 }

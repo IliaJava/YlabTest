@@ -3,6 +3,7 @@ package org.example.textanalyzer.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Слово и его частота, привязанные к конкретному анализу.
@@ -10,15 +11,16 @@ import lombok.Data;
 @Entity
 @Table(name = "analysis_words")
 @Data
+@ToString(exclude = "analysis")
 public class WordCountEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    public Long id;
 
-    private String word;
-    private long count;
+    public String word;
+    public long count;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private AnalysisEntity analysis;
+    public AnalysisEntity analysis;
 }

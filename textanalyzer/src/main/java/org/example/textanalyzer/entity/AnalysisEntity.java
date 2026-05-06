@@ -1,5 +1,6 @@
 package org.example.textanalyzer.entity;
 
+import lombok.ToString;
 import org.example.textanalyzer.util.AnalysisStatus;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -14,30 +15,31 @@ import java.util.List;
 @Entity
 @Table(name = "analyses")
 @Data
+@ToString(exclude = {"words", "errors"})
 public class AnalysisEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    public Long id;
 
-    private String directory;
-    private int minWordLength;
-    private int topCount;
-    private String mode;
-    private int threads;
+    public String directory;
+    public int minWordLength;
+    public int topCount;
+    public String mode;
+    public int threads;
 
     @Enumerated(EnumType.STRING)
-    private AnalysisStatus status;
+    public AnalysisStatus status;
 
-    private long executionTimeMs;
-    private int processedFiles;
+    public long executionTimeMs;
+    public int processedFiles;
 
-    private String username;
-    private Instant createdAt;
-
-    @OneToMany(mappedBy = "analysis", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<WordCountEntity> words = new ArrayList<>();
+    public String username;
+    public Instant createdAt;
 
     @OneToMany(mappedBy = "analysis", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ErrorEntity> errors = new ArrayList<>();
+    public List<WordCountEntity> words = new ArrayList<>();
+
+    @OneToMany(mappedBy = "analysis", cascade = CascadeType.ALL, orphanRemoval = true)
+    public List<ErrorEntity> errors = new ArrayList<>();
 }

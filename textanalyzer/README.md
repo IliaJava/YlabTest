@@ -135,3 +135,43 @@ Process finished with exit code 0
 
 ## Вывод
 Для многопоточного приложения процесс происходит быстрее, разница будет увеличиваться с ростом числа файлов и их размера.
+
+## Создание Rest сервиса
+
+**Приложение должно:**
+
+1. Запускать анализ текстов через API (`POST /api/analyze`) с передачей параметров анализа в теле запроса.
+
+2. Предоставляет возможность получать результаты конкретного анализа (`GET /api/results/{id}`) и список всех прошлых анализов (`GET /api/results`).
+
+   1. Если анализ ещё не завершён, GET /api/results/{id} должен возвращать статус выполнения (PENDING, RUNNING и т.д.) вместо результатов.
+
+3. Сохраняет результаты анализов в базу данных (параметры анализа, слова с частотой, ошибки, время выполнения) с уникальным идентификатором для каждого анализа.
+
+4. Обеспечивает безопасность: доступ к API только авторизованным пользователям (**Spring Security**).
+
+5. Ведёт аудит действий пользователей: кто, когда и с какими параметрами запускал анализ; хранит данные в БД.
+
+6. Использует многопоточную обработку файлов из Этапа 2.
+
+7. Возвращает результаты в единый JSON-формат, совместимый с Этапами 1–2.
+## Запуск
+Запускаем приложение. Работает на порту 8080.
+Работаем через Postman.
+![img_2.png](img_2.png)
+[]![img_1.png](img_1.png)()
+Тесты пройдены.
+Hibernate: insert into analysis_words (analysis_id,count,word,id) values (?,?,?,default)
+Hibernate: insert into analysis_words (analysis_id,count,word,id) values (?,?,?,default)
+Hibernate: insert into audit_log (action,analysis_id,details,timestamp,username,id) values (?,?,?,?,?,default)
+Hibernate: update analyses set created_at=?,directory=?,execution_time_ms=?,min_word_length=?,mode=?,processed_files=?,status=?,threads=?,top_count=?,username=? where id=?
+Hibernate: select ae1_0.id,ae1_0.created_at,ae1_0.directory,ae1_0.execution_time_ms,ae1_0.min_word_length,ae1_0.mode,ae1_0.processed_files,ae1_0.status,ae1_0.threads,ae1_0.top_count,ae1_0.username from analyses ae1_0 where ae1_0.username=?
+Hibernate: select w1_0.analysis_id,w1_0.id,w1_0.count,w1_0.word from analysis_words w1_0 where w1_0.analysis_id=?
+Hibernate: select e1_0.analysis_id,e1_0.id,e1_0.file,e1_0.message from analysis_errors e1_0 where e1_0.analysis_id=?
+2026-05-07T01:15:31.895+07:00  INFO 5628 --- [textanalyzer] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-05-07T01:15:31.908+07:00  INFO 5628 --- [textanalyzer] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-05-07T01:15:31.918+07:00  INFO 5628 --- [textanalyzer] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-05-07T01:15:31.925+07:00  INFO 5628 --- [textanalyzer] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-05-07T01:15:31.935+07:00  INFO 5628 --- [textanalyzer] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+
+Process finished with exit code 0

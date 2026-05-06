@@ -3,6 +3,7 @@ package org.example.textanalyzer.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 import java.time.Instant;
 
@@ -12,15 +13,16 @@ import java.time.Instant;
 @Entity
 @Table(name = "audit_log")
 @Data
+@ToString
 public class AuditRecord {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    public Long id;
 
-    private String username;
-    private String action;
-    private Long analysisId;
-    private Instant timestamp;
-    private String details;
+    public String username;
+    public String action;
+    public Long analysisId;
+    public Instant timestamp;
+    public String details;
 }
